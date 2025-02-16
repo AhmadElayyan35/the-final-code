@@ -227,9 +227,6 @@ void updateYaw() {
     Serial.println(yaw);
 }
 
-// ===========================
-// دوال حركة الروبوت
-// ===========================
 void moveOneCell() {
     encoderCountA = 0;
     encoderCountB = 0;
@@ -339,13 +336,9 @@ void turnLeft() {
     Serial.println("Left Turn Complete! Yaw reset to 0");
 }
 
-// ===========================
-// دالة الإعداد (setup)
-// ===========================
 void setup() {
     Serial.begin(115200);
     
-    // إعداد مخارج المحركات
     pinMode(EnableA, OUTPUT);
     pinMode(motorIn1, OUTPUT);
     pinMode(motorIn2, OUTPUT);
@@ -353,17 +346,14 @@ void setup() {
     pinMode(motorIn3, OUTPUT);
     pinMode(motorIn4, OUTPUT);
     
-    // إعداد مداخل الإنكودر
     pinMode(EncoderA, INPUT_PULLUP);
     pinMode(EncoderB, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(EncoderA), handleEncoderA, RISING);
     attachInterrupt(digitalPinToInterrupt(EncoderB), handleEncoderB, RISING);
     
-    // تهيئة MPU6050 والمعايرة
     initMPU();
     calibrateGyro();
     
-    // إعداد دبابيس الحساسات (shutdown)
     pinMode(SHT_LOX1, OUTPUT);
     pinMode(SHT_LOX2, OUTPUT);
     pinMode(SHT_LOX3, OUTPUT);
@@ -374,11 +364,7 @@ void setup() {
     Serial.println("Setup complete.");
 }
 
-// ===========================
-// دالة التنفيذ الرئيسية (loop)
-// ===========================
 void loop() {
-    // 1. تحديث وطباعة قراءات الحساسات
     int frontDistance = readFrontDistance();
     int rightDistance = readRightDistance();
     int leftDistance = readLeftDistance();
@@ -387,7 +373,6 @@ void loop() {
     Serial.print(" mm, Right: "); Serial.print(rightDistance);
     Serial.print(" mm, Left: "); Serial.println(leftDistance);
 
-    // 2. التحقق مما إذا كان هناك جدار أم لا
     bool frontWall = (frontDistance >= minDistance && frontDistance <= maxDistance);
     bool rightWall = (rightDistance >= minDistance && rightDistance <= maxDistance);
     bool leftWall  = (leftDistance >= minDistance && leftDistance <= maxDistance);
@@ -396,7 +381,6 @@ void loop() {
     Serial.print(" | Right wall: "); Serial.print(rightWall);
     Serial.print(" | Left wall: "); Serial.println(leftWall);
 
-    // 3. اتخاذ القرار بعد اكتمال جميع القراءات
     if (!leftWall) {
         Serial.println("Decision: Turn Left (left-hand rule)");
         turnLeft();
