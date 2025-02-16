@@ -5,7 +5,6 @@
 #include "Adafruit_VL53L0X.h"
 
 // ===========================
-// إعدادات محركات الروبوت
 // ===========================
 const int EnableA = 27;
 const int motorIn1 = 14;
