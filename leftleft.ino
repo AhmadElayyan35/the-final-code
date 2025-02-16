@@ -233,9 +233,11 @@ void updateYaw() {
 void moveOneCell() {
     encoderCountA = 0;
     encoderCountB = 0;
+
+    // تفعيل PID
     myPID.SetMode(AUTOMATIC);
     myPID.SetOutputLimits(-50, 50);
-    
+
     // تشغيل المحركات للأمام
     analogWrite(EnableA, baseSpeedA);
     analogWrite(EnableB, baseSpeedB);
@@ -243,37 +245,52 @@ void moveOneCell() {
     digitalWrite(motorIn2, LOW);
     digitalWrite(motorIn3, HIGH);
     digitalWrite(motorIn4, LOW);
-    
+
     while (encoderCountA < ticksPerCell || encoderCountB < ticksPerCell) {
+        // حساب الفرق بين الإنكودرات لتصحيح المسار
         input = encoderCountA - encoderCountB;
-        if (abs(input) > 0.5)
+
+        if (abs(input) > 0.5) {
             myPID.Compute();
-        else
-            output = 0;
-        
-        // تصحيح بسيط للسرعات بناءً على قيمة yaw
-        if (yaw > 2) {
-            analogWrite(EnableA, baseSpeedA - 10);
-            analogWrite(EnableB, baseSpeedB);
-        } else if (yaw < -2) {
-            analogWrite(EnableA, baseSpeedA);
-            analogWrite(EnableB, baseSpeedB - 10);
         } else {
-            analogWrite(EnableA, baseSpeedA);
-            analogWrite(EnableB, baseSpeedB);
+            output = 0;
         }
-        
-        updateYaw();
-        Serial.print("Yaw Output: ");
-        Serial.println(yaw);
-        delay(5);
+
+        // تصحيح السرعات بناءً على PID
+        int adjustedSpeedA = baseSpeedA - output;
+        int adjustedSpeedB = baseSpeedB + output;
+
+        // تصحيح الميلان باستخدام Yaw
+        updateYaw(); // تحديث زاوية Yaw أثناء الحركة
+        if (yaw > 2) {
+            adjustedSpeedA -= 10;
+        } else if (yaw < -2) {
+            adjustedSpeedB -= 10;
+        }
+
+        // ضبط الحدود المسموحة للسرعة
+        adjustedSpeedA = constrain(adjustedSpeedA, 0, 255);
+        adjustedSpeedB = constrain(adjustedSpeedB, 0, 255);
+
+        // تطبيق السرعات المعدلة
+        analogWrite(EnableA, adjustedSpeedA);
+        analogWrite(EnableB, adjustedSpeedB);
+
+        // طباعة معلومات التصحيح للتصحيح والتطوير
+        Serial.print("Encoder A: "); Serial.print(encoderCountA);
+        Serial.print(" | Encoder B: "); Serial.print(encoderCountB);
+        Serial.print(" | PID Output: "); Serial.print(output);
+        Serial.print(" | Yaw: "); Serial.println(yaw);
+
+        delay(5); // تحديث سلس
     }
-    
-    // إيقاف المحركات
+
+    // إيقاف المحركات بعد الوصول للنقطة المطلوبة
     analogWrite(EnableA, 0);
     analogWrite(EnableB, 0);
-    delay(500);
+    delay(200); // تأخير بسيط للثبات
 }
+
 
 void turnRight() {
     encoderCountA = 0;
